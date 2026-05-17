@@ -89,27 +89,27 @@ namespace SongCore::API {
     }
 
     namespace PlayButton {
+        // Keep the internal structures but make disabling a no-op so the play button
+        // cannot be disabled by other mods. This enforces the user's request to
+        // always allow playing regardless of external "not supported" checks.
         static std::vector<PlayButtonDisablingModInfo> _disablingModInfos;
         static UnorderedEventCallback<std::span<PlayButtonDisablingModInfo const>> _playButtonDisablingModsChangedEvent;
 
         void DisablePlayButton(std::string modID, std::string reason) {
-            auto itr = std::find_if(_disablingModInfos.begin(), _disablingModInfos.end(), [&modID](auto& x){ return x.modID == modID; });
-            if (itr == _disablingModInfos.end()) {
-                _disablingModInfos.emplace_back(modID, reason);
-                _playButtonDisablingModsChangedEvent.invoke(_disablingModInfos);
-            } else {
-                WARNING("Mod {} tried disabling the play button twice, which is not supported! current reason: {}, new reason: {}", modID, itr->reason, reason);
-            }
+            // Intentionally ignore requests to disable the play button.
+            INFO("PlayButton::DisablePlayButton called for mod '{}' - ignoring per user override", modID);
+            return;
         }
 
         void EnablePlayButton(std::string modID) {
-            auto itr = std::find_if(_disablingModInfos.begin(), _disablingModInfos.end(), [&modID](auto& x){ return x.modID == modID; });
-            if (itr != _disablingModInfos.end()) {
-                _disablingModInfos.erase(itr);
+            // For safety, clear any existing entries and notify listeners that
+            // there are no disabling mods anymore.
+            if (!_disablingModInfos.empty()) {
+                _disablingModInfos.clear();
                 _playButtonDisablingModsChangedEvent.invoke(_disablingModInfos);
-            } else {
-                WARNING("Mod {} tried enabling the play button twice, which is not supported!", modID);
             }
+            INFO("PlayButton::EnablePlayButton called for mod '{}' - no-op", modID);
+            return;
         }
 
         UnorderedEventCallback<std::span<PlayButtonDisablingModInfo const>>& GetPlayButtonDisablingModsChangedEvent() {
@@ -117,7 +117,9 @@ namespace SongCore::API {
         }
 
         std::span<PlayButtonDisablingModInfo const> GetPlayButtonDisablingModInfos() {
-            return _disablingModInfos;
+            // Always return an empty span so callers see no disabling mods.
+            static std::vector<PlayButtonDisablingModInfo> emptyVec;
+            return emptyVec;
         }
     }
 

@@ -26,7 +26,9 @@ namespace SongCore::UI {
         _playButton = _levelDetailViewController->_standardLevelDetailView->actionButton;
         _practiceButton = _levelDetailViewController->_standardLevelDetailView->practiceButton;
 
-        _anyDisablingModInfos = !_playButtonInteractable->PlayButtonDisablingModInfos.empty();
+        // Respect user override: ignore external mods that try to disable the play button.
+        // This prevents requirements/"not supported on this device" reasons from disabling play.
+        _anyDisablingModInfos = false;
         _isRefreshing = _runtimeSongLoader->AreSongsRefreshing;
 
         _runtimeSongLoader->SongsWillRefresh += {&PlayButtonsUpdater::SongsWillRefresh, this};
@@ -96,7 +98,9 @@ namespace SongCore::UI {
     }
 
     void PlayButtonsUpdater::HandleDisablingModInfosChanged(std::span<PlayButtonInteractable::PlayButtonDisablingModInfo const> disablingModInfos) {
-        _anyDisablingModInfos = !disablingModInfos.empty();
+        // Ignore disabling requests from other mods (e.g., device-not-supported or missing-mod requirements).
+        // The user requested that the play button should not be disabled in these cases.
+        _anyDisablingModInfos = false;
 
         UpdatePlayButtonsState();
     }

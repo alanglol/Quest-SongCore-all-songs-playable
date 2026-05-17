@@ -1,2 +1,2 @@
 # Quest-SongCore
-A library/mod for Quest Beat Saber that handles song loading, song requirements and capabilities.
+A modified version of songcore for https://github.com/axo-lotl/Vivify-Quest so it can expand the variety of vivify maps because some vivify maps are locked behind not availiable on your device even though you have vivify so enjoy my contribution to the vivify quest port however soon enough im gonna make a fork of that mod to fix vivify note colors because after a little bit of playing vivify custom notes it randomizes the color making it harder to play
